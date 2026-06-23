@@ -27,7 +27,7 @@ chunks = text_splitter.split_documents(data)
 
 vector_db = Chroma.from_documents(
     documents=chunks,
-    embedding=OllamaEmbeddings(model="nomic-embed-text"),
+    embedding=OllamaEmbeddings(model="nomic-embed-text", base_url="http://127.0.0.1:11434"),
     collection_name="vector_collection",
     persist_directory="runs"
 )
@@ -41,7 +41,7 @@ from langchain_classic.retrievers.multi_query import MultiQueryRetriever
 
 
 local_model = "llama3.2"
-llm = ChatOllama(model=local_model)
+llm = ChatOllama(model=local_model, base_url="http://127.0.0.1:11434")
 
 QUERY_PROMPT = PromptTemplate(
     input_variables=["question"],
