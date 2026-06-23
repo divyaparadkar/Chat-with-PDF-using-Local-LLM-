@@ -3,3 +3,4 @@ runs/
 .venv_win/
 __pycache__/
 .ipynb_checkpoints/
+*.bin
