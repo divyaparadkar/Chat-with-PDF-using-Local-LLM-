@@ -1,13 +1,15 @@
 
-from langchain_community.embeddings import OllamaEmbeddings
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from langchain_community.vectorstores import Chroma
-from langchain_community.document_loaders import UnstructuredPDFLoader
-from langchain_community.document_loaders import OnlinePDFLoader
+import warnings
+warnings.filterwarnings('ignore')
 
-local_path = "talib_resume_resumeword_color.pdf"
+from langchain_ollama import OllamaEmbeddings, ChatOllama
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_chroma import Chroma
+from langchain_community.document_loaders import PyPDFLoader
+
+local_path = "Divya Paradkar.pdf"
 if local_path:
-  loader = UnstructuredPDFLoader(file_path=local_path)
+  loader = PyPDFLoader(file_path=local_path)
   data = loader.load()
 else:
   print("Upload a PDF file")
@@ -25,21 +27,20 @@ chunks = text_splitter.split_documents(data)
 
 vector_db = Chroma.from_documents(
     documents=chunks,
-    embedding=OllamaEmbeddings(model="llama3.1", show_progress=True),
+    embedding=OllamaEmbeddings(model="nomic-embed-text"),
     collection_name="vector_collection",
     persist_directory="runs"
 )
 
 
 
-from langchain.prompts import ChatPromptTemplate, PromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_community.chat_models import ChatOllama
 from langchain_core.runnables import RunnablePassthrough
-from langchain.retrievers.multi_query import MultiQueryRetriever
+from langchain_classic.retrievers.multi_query import MultiQueryRetriever
 
 
-local_model = "llama3.1"
+local_model = "llama3.2"
 llm = ChatOllama(model=local_model)
 
 QUERY_PROMPT = PromptTemplate(
@@ -73,4 +74,7 @@ chain = (
 )
 
 
-chain.invoke("what is this about?")
+print("Invoking chain...")
+result = chain.invoke("what is this about?")
+print("\n--- Answer ---")
+print(result)
