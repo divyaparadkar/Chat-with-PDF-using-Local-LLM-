@@ -208,18 +208,25 @@ def initialize_vector_store(file_bytes, file_name, ollama_url):
         loader = PyPDFLoader(file_path=temp_path)
         documents = loader.load()
         
-        # Split documents
-        text_splitter = RecursiveCharacterTextSplitter(chunk_size=7500, chunk_overlap=100)
+        # Split documents (using a more standard chunk size for better semantic accuracy and speed)
+        text_splitter = RecursiveCharacterTextSplitter(chunk_size=1500, chunk_overlap=150)
         chunks = text_splitter.split_documents(documents)
         
         # Build Vector DB
         db_dir = tempfile.mkdtemp()
-        vector_db = Chroma.from_documents(
-            documents=chunks,
-            embedding=OllamaEmbeddings(model="nomic-embed-text", base_url=ollama_url),
+        embeddings = OllamaEmbeddings(model="nomic-embed-text", base_url=ollama_url)
+        vector_db = Chroma(
             collection_name="vector_collection",
+            embedding_function=embeddings,
             persist_directory=db_dir
         )
+        
+        # Add documents in small batches of 3 to prevent HTTP connection timeouts over the tunnel
+        batch_size = 3
+        for i in range(0, len(chunks), batch_size):
+            batch = chunks[i:i + batch_size]
+            vector_db.add_documents(batch)
+            
         return vector_db, len(documents), len(chunks)
     finally:
         try:
