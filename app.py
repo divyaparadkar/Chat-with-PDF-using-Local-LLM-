@@ -171,6 +171,16 @@ with st.sidebar:
     
     st.markdown("---")
     
+    # Ollama Connection Configuration
+    st.markdown("<h4 style='font-family: Outfit; font-weight:600; color:#e2e8f0; margin-bottom: 0.5rem;'>🌐 Ollama Connection</h4>", unsafe_allow_html=True)
+    ollama_url = st.text_input(
+        "Ollama Server URL",
+        value="http://localhost:11434",
+        help="Specify the remote Ollama server URL if hosted online. Defaults to localhost."
+    )
+    
+    st.markdown("---")
+    
     # Clear conversation button
     if st.button("Clear Conversation", use_container_width=True):
         st.session_state.chat_history = []
@@ -187,7 +197,7 @@ def get_file_identifier(file):
     return f"{file.name}_{file.size}"
 
 @st.cache_resource(show_spinner=False)
-def initialize_vector_store(file_bytes, file_name):
+def initialize_vector_store(file_bytes, file_name, ollama_url):
     # Save file bytes to temporary file to load via PyPDFLoader
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as temp_file:
         temp_file.write(file_bytes)
@@ -206,7 +216,7 @@ def initialize_vector_store(file_bytes, file_name):
         db_dir = tempfile.mkdtemp()
         vector_db = Chroma.from_documents(
             documents=chunks,
-            embedding=OllamaEmbeddings(model="nomic-embed-text"),
+            embedding=OllamaEmbeddings(model="nomic-embed-text", base_url=ollama_url),
             collection_name="vector_collection",
             persist_directory=db_dir
         )
@@ -229,7 +239,7 @@ if uploaded_file is not None:
                 bytes_data = uploaded_file.read()
                 
                 status.write("Splitting text chunks and embedding...")
-                vector_db, num_pages, num_chunks = initialize_vector_store(bytes_data, uploaded_file.name)
+                vector_db, num_pages, num_chunks = initialize_vector_store(bytes_data, uploaded_file.name, ollama_url)
                 
                 status.update(label="PDF processed and embedded successfully!", state="complete", expanded=False)
                 st.session_state.processed_file_hash = file_id
@@ -240,7 +250,7 @@ if uploaded_file is not None:
     else:
         # If it's already indexed, retrieve cached db
         bytes_data = uploaded_file.getvalue()
-        vector_db, num_pages, num_chunks = initialize_vector_store(bytes_data, uploaded_file.name)
+        vector_db, num_pages, num_chunks = initialize_vector_store(bytes_data, uploaded_file.name, ollama_url)
     
     # Display Stats Badge
     st.markdown(
@@ -255,7 +265,7 @@ if uploaded_file is not None:
     )
     
     # Initialize the LLM Chain elements
-    llm = ChatOllama(model="llama3.2")
+    llm = ChatOllama(model="llama3.2", base_url=ollama_url)
     
     QUERY_PROMPT = PromptTemplate(
         input_variables=["question"],
