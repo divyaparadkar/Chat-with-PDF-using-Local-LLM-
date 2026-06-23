@@ -173,9 +173,10 @@ with st.sidebar:
     
     # Ollama Connection Configuration
     st.markdown("<h4 style='font-family: Outfit; font-weight:600; color:#e2e8f0; margin-bottom: 0.5rem;'>🌐 Ollama Connection</h4>", unsafe_allow_html=True)
+    default_url = os.environ.get("OLLAMA_URL", "http://localhost:11434")
     ollama_url = st.text_input(
         "Ollama Server URL",
-        value="http://localhost:11434",
+        value=default_url,
         help="Specify the remote Ollama server URL if hosted online. Defaults to localhost."
     )
     
