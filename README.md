@@ -1,3 +1,13 @@
+---
+title: Chat with PDF
+emoji: 🧠
+colorFrom: blue
+colorTo: indigo
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
 # 🧠 Secure Local PDF Chat
 
 A secure, private, and 100% offline **Retrieval-Augmented Generation (RAG)** application for interacting with your PDF documents via chat-based queries. Built with LangChain, Streamlit, and Ollama, this project ensures your sensitive documents never leave your local machine.
